@@ -6,22 +6,33 @@
     <title>407 教室二手書助手</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; transition: transform 0.2s; }
         h2 { color: #1a73e8; margin-top: 0; text-align: center; font-weight: 700; }
-        textarea { width: 100%; height: 120px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 12px; box-sizing: border-box; font-size: 16px; margin-bottom: 15px; resize: vertical; }
-        button { width: 100%; padding: 14px; background: #1a73e8; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; width: 100%; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        #output { margin-top: 20px; white-space: pre-wrap; background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0; display: none; line-height: 1.6; }
+        p.subtitle { text-align: center; color: #5f6368; font-size: 14px; margin-bottom: 20px; }
+        textarea { width: 100%; height: 120px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 12px; box-sizing: border-box; font-size: 16px; margin-bottom: 15px; resize: vertical; transition: border-color 0.3s; }
+        textarea:focus { border-color: #1a73e8; outline: none; }
+        button { width: 100%; padding: 14px; background: #1a73e8; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; transition: 0.2s; margin-bottom: 10px; }
+        button:hover { background: #1557b0; transform: translateY(-1px); }
+        button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        #output { margin-top: 20px; white-space: pre-wrap; background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0; font-family: monospace; display: none; line-height: 1.6; color: #202124; }
+        .copy-btn { background: #34a853; display: none; width: 100%; }
+        .copy-btn:hover { background: #2d8f45; }
         .footer { text-align: center; font-size: 12px; color: #9aa0a6; margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="card">
         <h2>📚 407 二手書助手</h2>
-        <textarea id="userInput" placeholder="請輸入書名、價格、聯絡資訊..."></textarea>
+        <p class="subtitle">搭載 Gemini 2.0 高效引擎</p>
+        
+        <textarea id="userInput" placeholder="例如：我要賣希臘文課本， Samuel， 50元，書況舊..."></textarea>
+        
         <button id="runBtn">✨ 立即格式化</button>
+        
         <div id="output"></div>
-        <div class="footer">🔒 已啟動網域防護安全性</div>
+        <button id="copyBtn" class="copy-btn">📋 一鍵複製結果</button>
+        
+        <div class="footer">🔒 網域安全鎖已啟動 · Powered by 407 Lab</div>
     </div>
 
     <script type="importmap">
@@ -30,39 +41,58 @@
 
     <script type="module">
         import { GoogleGenerativeAI } from "@google/generative-ai";
-        
-        // 此金鑰已具備網域鎖定，僅在 samuelshih66.github.io 下有效
+
+        // 使用您剛產生的新金鑰
         const API_KEY = "AIzaSyB3zY7XKlS4EzNOD62nUSG2gGzzAZoP2Vk"; 
         const genAI = new GoogleGenerativeAI(API_KEY);
-        // 使用您帳號清單中確認穩定的型號
+        // 使用您清單中確認存在的穩定型號
         const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+
+        const SYSTEM_PROMPT = "你現在是神學院「407二手書市集」的管理員。請將使用者輸入轉為標準格式，並加上適當的emoji讓版面活潑：\n📚 【賣書/徵書】\n📖 書名：\n✍️ 作者/出版社：\n💰 價格：\n👤 聯絡人：\n📝 書況/備註：\n⚠️ 提醒：交易請私下聯繫，錢勿放407教室。";
 
         const runBtn = document.getElementById('runBtn');
         const outputDiv = document.getElementById('output');
+        const copyBtn = document.getElementById('copyBtn');
+        const userInput = document.getElementById('userInput');
 
         runBtn.addEventListener('click', async () => {
-            const input = document.getElementById('userInput').value;
-            if (!input.trim()) return alert("請輸入書籍資訊。");
+            const input = userInput.value;
+            if (!input.trim()) return alert("先生，請先輸入書籍資訊。");
 
             runBtn.disabled = true;
-            runBtn.innerText = "正在安全運算中...";
+            runBtn.innerText = "正在優化格式...";
             outputDiv.style.display = "none";
+            copyBtn.style.display = "none";
 
             try {
-                const result = await model.generateContent("將輸入轉為407二手書標準格式：\n" + input);
-                outputDiv.innerText = (await result.response).text();
+                const result = await model.generateContent(`${SYSTEM_PROMPT}\n\n使用者輸入：${input}`);
+                const response = await result.response;
+                const text = response.text();
+
+                outputDiv.innerText = text;
                 outputDiv.style.display = "block";
+                copyBtn.style.display = "block";
+                runBtn.innerText = "✨ 再次格式化";
+
             } catch (error) {
-                console.error(error);
-                let msg = error.message;
-                // 針對常見安全錯誤進行翻譯
-                if (msg.includes("403")) msg = "金鑰連線被拒，請確認 Google Cloud 的網址限制設定。";
-                if (msg.includes("429")) msg = "流量過大，請稍待 30 秒再試。";
-                alert("系統回報：" + msg);
+                console.error("SDK Error:", error);
+                let msg = "系統連線錯誤";
+                if (error.message.includes("403")) msg = "金鑰限制設定有誤 (403)";
+                if (error.message.includes("429")) msg = "目前流量較大，請等待 30 秒再試一次 (429)";
+                alert(`抱歉先生，${msg}`);
             } finally {
                 runBtn.disabled = false;
-                runBtn.innerText = "✨ 立即格式化";
             }
+        });
+
+        // 複製功能邏輯
+        copyBtn.addEventListener('click', () => {
+            const text = outputDiv.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = copyBtn.innerText;
+                copyBtn.innerText = "✅ 已複製到剪貼簿！";
+                setTimeout(() => { copyBtn.innerText = originalText; }, 2000);
+            });
         });
     </script>
 </body>
