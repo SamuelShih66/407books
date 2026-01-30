@@ -3,102 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>407 教室二手書助手 (Lite版)</title>
+    <title>407 教室二手書助手 (穩定版)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; transition: transform 0.2s; }
+        .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
         h2 { color: #1a73e8; margin-top: 0; text-align: center; font-weight: 700; }
-        p.subtitle { text-align: center; color: #5f6368; font-size: 14px; margin-bottom: 20px; }
-        textarea { width: 100%; height: 120px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 12px; box-sizing: border-box; font-size: 16px; margin-bottom: 15px; resize: vertical; transition: border-color 0.3s; }
-        textarea:focus { border-color: #1a73e8; outline: none; }
-        button { width: 100%; padding: 14px; background: #1a73e8; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; transition: 0.2s; margin-bottom: 10px; }
-        button:hover { background: #1557b0; transform: translateY(-1px); }
-        button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
-        #output { margin-top: 20px; white-space: pre-wrap; background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0; font-family: monospace; display: none; line-height: 1.6; color: #202124; }
-        .copy-btn { background: #34a853; display: none; }
-        .copy-btn:hover { background: #2d8f45; }
-        .footer { text-align: center; font-size: 12px; color: #9aa0a6; margin-top: 20px; }
+        textarea { width: 100%; height: 120px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 12px; box-sizing: border-box; font-size: 16px; margin-bottom: 15px; resize: vertical; }
+        button { width: 100%; padding: 14px; background: #1a73e8; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #output { margin-top: 20px; white-space: pre-wrap; background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0; font-family: monospace; display: none; line-height: 1.6; }
+        .copy-btn { background: #34a853; width: 100%; padding: 12px; color: white; border: none; border-radius: 10px; cursor: pointer; display: none; }
     </style>
 </head>
 <body>
     <div class="card">
         <h2>📚 407 二手書助手</h2>
-        <p class="subtitle">搭載 gemini-1.5-flash-8b 輕量引擎</p>
-        
-        <textarea id="userInput" placeholder="例如：我要賣希臘文課本， Samuel， 50元，書況舊..."></textarea>
-        
+        <textarea id="userInput" placeholder="輸入書籍資訊..."></textarea>
         <button id="runBtn">✨ 立即格式化</button>
-        
         <div id="output"></div>
         <button id="copyBtn" class="copy-btn">📋 一鍵複製結果</button>
-        
-        <div class="footer">Powered by Google Gemini 2.0 Lite</div>
     </div>
 
     <script type="importmap">
-      {
-        "imports": {
-          "@google/generative-ai": "https://esm.run/@google/generative-ai"
-        }
-      }
+      { "imports": { "@google/generative-ai": "https://esm.run/@google/generative-ai" } }
     </script>
 
     <script type="module">
         import { GoogleGenerativeAI } from "@google/generative-ai";
-
-        // 您的新金鑰 (無需更動)
         const API_KEY = "AIzaSyAbITpDLQrL0YniZfLoDOzAXRAgRPU6fdA"; 
 
-        // 初始化：切換到 'gemini-2.0-flash-lite-001'，避開流量塞車
+        // 修正點：使用您清單中確認存在的 gemini-1.5-flash
         const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-8b" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-        const SYSTEM_PROMPT = "你現在是神學院「407二手書市集」的管理員。請將使用者輸入轉為標準格式，並加上適當的emoji讓版面活潑：\n📚 【賣書/徵書】\n📖 書名：\n✍️ 作者/出版社：\n💰 價格：\n👤 聯絡人：\n📝 書況/備註：\n⚠️ 提醒：交易請私下聯繫，錢勿放407教室。";
+        const SYSTEM_PROMPT = "你現在是神學院「407二手書市集」的管理員。請將使用者輸入轉為標準格式：\n📚 【賣書/徵書】\n📖 書名：\n✍️ 作者/出版社：\n💰 價格：\n👤 聯絡人：\n📝 書況/備註：\n⚠️ 提醒：交易請私下聯繫，錢勿放407教室。";
 
         const runBtn = document.getElementById('runBtn');
         const outputDiv = document.getElementById('output');
         const copyBtn = document.getElementById('copyBtn');
-        const userInput = document.getElementById('userInput');
 
         runBtn.addEventListener('click', async () => {
-            const input = userInput.value;
-            if (!input.trim()) return alert("先生，請輸入書籍資訊，AI 才能為您服務。");
+            const input = document.getElementById('userInput').value;
+            if (!input.trim()) return alert("先生，請輸入書籍資訊。");
 
             runBtn.disabled = true;
-            runBtn.innerText = "Lite 引擎運算中...";
+            runBtn.innerText = "運算中...";
             outputDiv.style.display = "none";
-            copyBtn.style.display = "none";
 
             try {
-                // 發送請求
                 const result = await model.generateContent(`${SYSTEM_PROMPT}\n\n使用者輸入：${input}`);
                 const response = await result.response;
-                const text = response.text();
-
-                outputDiv.innerText = text;
+                outputDiv.innerText = response.text();
                 outputDiv.style.display = "block";
                 copyBtn.style.display = "block";
-                runBtn.innerText = "✨ 再次格式化";
-
             } catch (error) {
-                console.error("SDK Error:", error);
-                let msg = error.message;
-                if (msg.includes("429")) msg = "目前流量較大，請等待 30 秒後再試一次 (429)";
-                if (msg.includes("403")) msg = "金鑰限制設定有誤 (403)";
-                alert(`運算發生錯誤：\n${msg}`);
-                runBtn.innerText = "❌ 重試";
+                alert("錯誤：" + error.message);
             } finally {
                 runBtn.disabled = false;
+                runBtn.innerText = "✨ 立即格式化";
             }
         });
 
         copyBtn.addEventListener('click', () => {
-            const text = outputDiv.innerText;
-            navigator.clipboard.writeText(text).then(() => {
-                const originalText = copyBtn.innerText;
-                copyBtn.innerText = "✅ 已複製！";
-                setTimeout(() => { copyBtn.innerText = originalText; }, 2000);
-            });
+            navigator.clipboard.writeText(outputDiv.innerText).then(() => alert("已複製！"));
         });
     </script>
 </body>
