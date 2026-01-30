@@ -51,7 +51,7 @@
 
         // 初始化：切換到 'gemini-2.0-flash-lite-001'，避開流量塞車
         const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite-001" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-8b" });
 
         const SYSTEM_PROMPT = "你現在是神學院「407二手書市集」的管理員。請將使用者輸入轉為標準格式，並加上適當的emoji讓版面活潑：\n📚 【賣書/徵書】\n📖 書名：\n✍️ 作者/出版社：\n💰 價格：\n👤 聯絡人：\n📝 書況/備註：\n⚠️ 提醒：交易請私下聯繫，錢勿放407教室。";
 
