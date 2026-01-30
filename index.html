@@ -32,10 +32,10 @@
         import { GoogleGenerativeAI } from "@google/generative-ai";
         
         // 此金鑰已具備網域鎖定，僅在 samuelshih66.github.io 下有效
-        const API_KEY = "AIzaSyAbITpDLQrL0YniZfLoDOzAXRAgRPU6fdA"; 
+        const API_KEY = "AIzaSyB3zY7XKlS4EzNOD62nUSG2gGzzAZoP2Vk"; 
         const genAI = new GoogleGenerativeAI(API_KEY);
         // 使用您帳號清單中確認穩定的型號
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
         const runBtn = document.getElementById('runBtn');
         const outputDiv = document.getElementById('output');
