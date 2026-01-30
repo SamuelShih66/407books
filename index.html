@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>407 教室二手書助手 (穩定版)</title>
+    <title>407 教室二手書助手 (Latest版)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
         .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
@@ -13,15 +13,17 @@
         button:disabled { background: #ccc; cursor: not-allowed; }
         #output { margin-top: 20px; white-space: pre-wrap; background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0; font-family: monospace; display: none; line-height: 1.6; }
         .copy-btn { background: #34a853; width: 100%; padding: 12px; color: white; border: none; border-radius: 10px; cursor: pointer; display: none; }
+        .footer { text-align: center; font-size: 12px; color: #9aa0a6; margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="card">
         <h2>📚 407 二手書助手</h2>
-        <textarea id="userInput" placeholder="輸入書籍資訊..."></textarea>
+        <textarea id="userInput" placeholder="例如：我要賣希臘文課本， Samuel， 50元，書況舊..."></textarea>
         <button id="runBtn">✨ 立即格式化</button>
         <div id="output"></div>
         <button id="copyBtn" class="copy-btn">📋 一鍵複製結果</button>
+        <div class="footer">Powered by Gemini Flash Latest</div>
     </div>
 
     <script type="importmap">
@@ -30,13 +32,15 @@
 
     <script type="module">
         import { GoogleGenerativeAI } from "@google/generative-ai";
+        
+        // 您的新金鑰 (請確認已設定網站限制)
         const API_KEY = "AIzaSyAbITpDLQrL0YniZfLoDOzAXRAgRPU6fdA"; 
 
-        // 修正點：使用您清單中確認存在的 gemini-1.5-flash
+        // 修正點：直接使用您清單中第 11 項存在的標準名稱
         const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
-        const SYSTEM_PROMPT = "你現在是神學院「407二手書市集」的管理員。請將使用者輸入轉為標準格式：\n📚 【賣書/徵書】\n📖 書名：\n✍️ 作者/出版社：\n💰 價格：\n👤 聯絡人：\n📝 書況/備註：\n⚠️ 提醒：交易請私下聯繫，錢勿放407教室。";
+        const SYSTEM_PROMPT = "你現在是神學院「407二手書市集」的管理員。請將使用者輸入轉為標準格式，並加上適當的emoji讓版面活潑：\n📚 【賣書/徵書】\n📖 書名：\n✍️ 作者/出版社：\n💰 價格：\n👤 聯絡人：\n📝 書況/備註：\n⚠️ 提醒：交易請私下聯繫，錢勿放407教室。";
 
         const runBtn = document.getElementById('runBtn');
         const outputDiv = document.getElementById('output');
@@ -49,6 +53,7 @@
             runBtn.disabled = true;
             runBtn.innerText = "運算中...";
             outputDiv.style.display = "none";
+            copyBtn.style.display = "none";
 
             try {
                 const result = await model.generateContent(`${SYSTEM_PROMPT}\n\n使用者輸入：${input}`);
@@ -56,16 +61,25 @@
                 outputDiv.innerText = response.text();
                 outputDiv.style.display = "block";
                 copyBtn.style.display = "block";
+                runBtn.innerText = "✨ 再次格式化";
             } catch (error) {
-                alert("錯誤：" + error.message);
+                console.error(error);
+                let msg = error.message;
+                // 如果是 429 錯誤，提示休息一下
+                if (msg.includes("429")) msg = "目前使用人數較多，請喝口水休息 30 秒後再試。";
+                alert("發生錯誤：" + msg);
+                runBtn.innerText = "❌ 重試";
             } finally {
                 runBtn.disabled = false;
-                runBtn.innerText = "✨ 立即格式化";
             }
         });
 
         copyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(outputDiv.innerText).then(() => alert("已複製！"));
+            navigator.clipboard.writeText(outputDiv.innerText).then(() => {
+                const oldText = copyBtn.innerText;
+                copyBtn.innerText = "✅ 已複製";
+                setTimeout(() => copyBtn.innerText = oldText, 2000);
+            });
         });
     </script>
 </body>
