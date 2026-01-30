@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>407 教室二手書助手</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #f4f4f9; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h2 { color: #2c3e50; margin-top: 0; text-align: center; }
+        textarea { width: 100%; height: 120px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; margin-bottom: 15px; }
+        button { width: 100%; padding: 12px; background: #4a90e2; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+        button:disabled { background: #ccc; }
+        #output { margin-top: 20px; white-space: pre-wrap; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #4a90e2; font-family: monospace; display: none; }
+        .copy-btn { margin-top: 10px; background: #27ae60; display: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>📚 407 二手書助手</h2>
+        <p style="font-size: 14px; color: #666;">隨意輸入書名、價格、聯絡方式，AI 會自動為您排版。</p>
+        <textarea id="userInput" placeholder="例如：我要賣希臘文課本， Samuel， 50元，書況舊..."></textarea>
+        <button id="runBtn" onclick="generateFormat()">開始格式化</button>
+        <div id="output"></div>
+        <button id="copyBtn" class="copy-btn" onclick="copyToClipboard()">一鍵複製結果</button>
+    </div>
+
+    <script>
+        const API_KEY = "AIzaSyC7GIvTk7cgncy6K-adCzPwSMa77rc60Q0"; // 請在此處填入您的 API Key
+        const SYSTEM_PROMPT = "你現在是神學院「407二手書市集」的管理員。請將使用者輸入轉為標準格式：\n📚 【賣書/徵書】\n📖 書名：\n✍️ 作者/出版社：\n💰 價格：\n👤 聯絡人：\n📝 書況/備註：\n⚠️ 提醒：交易請私下聯繫，錢勿放407教室。";
+
+        async function generateFormat() {
+            const input = document.getElementById('userInput').value;
+            const runBtn = document.getElementById('runBtn');
+            const outputDiv = document.getElementById('output');
+            const copyBtn = document.getElementById('copyBtn');
+
+            if (!input) return alert("請輸入內容");
+
+            runBtn.disabled = true;
+            runBtn.innerText = "處理中...";
+            outputDiv.style.display = "none";
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ role: "user", parts: [{ text: `${SYSTEM_PROMPT}\n\n使用者輸入：${input}` }] }]
+                    })
+                });
+
+                const data = await response.json();
+                const result = data.candidates[0].content.parts[0].text;
+                
+                outputDiv.innerText = result;
+                outputDiv.style.display = "block";
+                copyBtn.style.display = "block";
+            } catch (error) {
+                alert("發生錯誤，請檢查網路或 API Key");
+            } finally {
+                runBtn.disabled = false;
+                runBtn.innerText = "開始格式化";
+            }
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('output').innerText;
+            navigator.clipboard.writeText(text).then(() => alert("已複製到剪貼簿！"));
+        }
+    </script>
+</body>
+</html>
