@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>407 教室二手書助手 (Gen 2.0)</title>
+    <title>407 教室二手書助手 (Lite版)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
         .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; transition: transform 0.2s; }
@@ -23,7 +23,7 @@
 <body>
     <div class="card">
         <h2>📚 407 二手書助手</h2>
-        <p class="subtitle">搭載 Gemini 2.0 Flash 最新引擎</p>
+        <p class="subtitle">搭載 Gemini 2.0 Lite 輕量引擎</p>
         
         <textarea id="userInput" placeholder="例如：我要賣希臘文課本， Samuel， 50元，書況舊..."></textarea>
         
@@ -32,7 +32,7 @@
         <div id="output"></div>
         <button id="copyBtn" class="copy-btn">📋 一鍵複製結果</button>
         
-        <div class="footer">Powered by Google Gemini 2.0</div>
+        <div class="footer">Powered by Google Gemini 2.0 Lite</div>
     </div>
 
     <script type="importmap">
@@ -46,12 +46,12 @@
     <script type="module">
         import { GoogleGenerativeAI } from "@google/generative-ai";
 
-        // 您的金鑰
+        // 您的新金鑰 (無需更動)
         const API_KEY = "AIzaSyAbITpDLQrL0YniZfLoDOzAXRAgRPU6fdA"; 
 
-        // 初始化：直接使用清單中確認存在的 Gemini 2.0 Flash
+        // 初始化：切換到 'gemini-2.0-flash-lite-001'，避開流量塞車
         const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite-001" });
 
         const SYSTEM_PROMPT = "你現在是神學院「407二手書市集」的管理員。請將使用者輸入轉為標準格式，並加上適當的emoji讓版面活潑：\n📚 【賣書/徵書】\n📖 書名：\n✍️ 作者/出版社：\n💰 價格：\n👤 聯絡人：\n📝 書況/備註：\n⚠️ 提醒：交易請私下聯繫，錢勿放407教室。";
 
@@ -65,7 +65,7 @@
             if (!input.trim()) return alert("先生，請輸入書籍資訊，AI 才能為您服務。");
 
             runBtn.disabled = true;
-            runBtn.innerText = "Gemini 2.0 運算中...";
+            runBtn.innerText = "Lite 引擎運算中...";
             outputDiv.style.display = "none";
             copyBtn.style.display = "none";
 
@@ -82,7 +82,10 @@
 
             } catch (error) {
                 console.error("SDK Error:", error);
-                alert(`運算發生錯誤：\n${error.message}\n\n請檢查 Console 獲取詳細資訊。`);
+                let msg = error.message;
+                if (msg.includes("429")) msg = "目前流量較大，請等待 30 秒後再試一次 (429)";
+                if (msg.includes("403")) msg = "金鑰限制設定有誤 (403)";
+                alert(`運算發生錯誤：\n${msg}`);
                 runBtn.innerText = "❌ 重試";
             } finally {
                 runBtn.disabled = false;
